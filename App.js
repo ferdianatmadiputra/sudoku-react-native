@@ -22,8 +22,6 @@ export default function App() {
   //   dispatch(fetchBoard(difficulty));
   // }, []);
 
-
-  
   ////// versi sementara di app js semua tanpa storeee //////
   const [initBoard, setInitBoard] = useState([])
   const [currentBoard, setCurrentBoard] = useState([])
@@ -48,11 +46,7 @@ export default function App() {
     })
   }, [])
   
-  console.log(initBoard, '<<< isi initboard')
-
-  function newInputBoard(val) {
-    console.log(val)
-  }
+  // console.log(initBoard, '<<< isi initboard')
 
   const encodeBoard = (board) => board.reduce((result, row, i) => result + `%5B${encodeURIComponent(row)}%5D${i === board.length -1 ? '' : '%2C'}`, '')
 
@@ -61,12 +55,13 @@ export default function App() {
     .map(key => key + '=' + `%5B${encodeBoard(params[key])}%5D`)
     .join('&');
 
-
   function validate() {
     fetch('https://sugoku.herokuapp.com/validate', {
       method: 'POST',
-      body: encodeParams({board: currentBoard }),
+      body: encodeParams({ board: currentBoard }),
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      // data: {board: currentBoard }
+      // headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     })
     .then( response => {
       if (!response.ok) {
@@ -88,7 +83,7 @@ export default function App() {
   function autoSolve () {
     fetch('https://sugoku.herokuapp.com/solve', {
       method: 'POST',
-      body: encodeParams({ board: currentBoard }),
+      body: encodeParams({ board: initBoard }),
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     })
     .then( response => {
@@ -108,14 +103,22 @@ export default function App() {
       console.log(err)
     })
   }
+
+  function newInputBoard(val, i, j) {
+    let newBoard = JSON.parse(JSON.stringify(currentBoard))
+    newBoard[i][j] = val
+    setCurrentBoard(newBoard)
+  }
+
   if (initBoard.length < 1) {
     return <Text>Loading...</Text>
   }
+
   return (
     <PaperProvider theme={theme}>
       {/* <Provider store={store}> */}
         <View style={styles.container}>
-        {
+          {
           currentBoard.map((line, line_index) => (
             <View key={line_index} style={{ flexDirection: "row" }}>
               {
@@ -128,7 +131,7 @@ export default function App() {
                           // style={styles.square}
                           keyboardType="numeric"
                           defaultValue={cell.toString()}
-                          onChangeText={newInputBoard}
+                          onChangeText={(text) => newInputBoard(text, line_index, cell_index)}
                         />
                       </View>
 
@@ -144,9 +147,11 @@ export default function App() {
               }
             </View>
             ))
-        }
-        <Button title="Validate" onPress={validate}/>
-        <Button title="AutoSolve" onPress={autoSolve}/>
+          }
+          <View style={{ flexDirection: "row" }}>
+            <Button title="Validate" onPress={validate}/>
+            <Button title="AutoSolve" onPress={autoSolve}/>
+          </View>
         </View>
       {/* </Provider> */}
     </PaperProvider>
