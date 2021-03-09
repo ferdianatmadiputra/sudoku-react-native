@@ -3,57 +3,38 @@ import React, { useEffect, useState } from 'react';
 import { Button, StyleSheet, Text, TextInput, View, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Picker } from '@react-native-community/picker'
 import { DefaultTheme, Provider as PaperProvider } from 'react-native-paper'
-import { useSelector } from 'react-redux';
-// import LottieView from 'lottie-react-native';
+import { useDispatch } from 'react-redux';
+import { setIsValid, setCurrentBoard, setInitBoard } from '../store/actions';
 
-export default function HomeScreen({ navigation }) {
-  
-  const [difficulty, setDifficulty] = useState('random')
-  const [username, setUsername] = useState('')
-  
-  function goToGame () {
-    navigation.push('game', { difficulty: difficulty, username: username })
+
+export default function FinishScreen({ navigation, route }) {
+
+const username = route.params.username
+const difficulty = route.params.difficulty
+const score = route.params.score
+const dispatch = useDispatch()
+  function goToHome () {
+    dispatch(setIsValid('unsolved'))
+    dispatch(setCurrentBoard([]))
+    dispatch(setInitBoard([]))
+    navigation.push(('home'))
   }
+
   if (false) {
     return <Text>Loading...</Text>
   }
 
   return (
     <View style={styles.container}>
-      {/* <LottieView
-        source={require('../assets/lottie/plane_window.json')}
-        loop={true}
-        autoPlay={true}
-        progress={0} 
-        style={{ width: 150, height: 150 }}
-      /> */}
-      <Text style={styles.title}>SUDOKU!</Text>
-      <Text style={{marginBottom: 20}}>Your commute companion</Text>
-      <Text>Username:</Text>
-      <TextInput
-        style={styles.square}
-        autoFocus={true}
-        // keyboardType="numeric"
-        // defaultValue={cell.toString()}
-        onChangeText={(text) => setUsername(text)}
-      />
-      <Text>Difficulty:</Text>
-      <Picker
-        selectedValue={difficulty}
-        style={styles.square}
-        onValueChange={(itemValue, itemIndex) => setDifficulty(itemValue)}
-      >
-        <Picker.Item label="Random" value="random" />
-        <Picker.Item label="Easy" value="easy" />
-        <Picker.Item label="Medium" value="medium" />
-        <Picker.Item label="Hard" value="hard" />
-      </Picker>
+      <Text style={styles.title}>CONGRATS! {username.toUpperCase()} YOU HAVE FINISHED YOUR SUDOKU!</Text>
+      <Text>YOUR SCORE: {score}</Text>
+      <Text>LEADERBOARD:</Text>
       <View style={{ flexDirection: "row" }}>
         <TouchableOpacity
           style={styles.button}
-          onPress={goToGame}
+          onPress={goToHome}
         >
-          <Text style={styles.buttontext}>Start The Game!</Text>
+          <Text style={styles.buttontext}>Play again!</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -61,24 +42,41 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  loadercontainer: {
+    flex: 1,
+    // paddingTop: 20,
+    alignItems: 'center',
+    backgroundColor: "#FFEDC3",
+    justifyContent: 'center',
+  },
   container: {
     flex: 1,
     paddingTop: 20,
     alignItems: 'center',
     backgroundColor: "#FFEDC3",
     justifyContent: 'center',
-    textDecorationColor: '#ffffff'
   },
   square: {
-    height: 50,
-    width: 300,
-    // borderColor: "#20232a",
-    // borderWidth: 0.4,
-    // borderRadius: 2,
+    width: 40,
+    height: 40,
+    borderColor: "grey",
+    borderWidth: 0.5,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
+    margin: 0,
     backgroundColor: "#ffff",
-    marginBottom: 30
+  },
+  givensquare: {
+    width: 40,
+    height: 40,
+    borderColor: "grey",
+    borderWidth: 0.5,
+    borderRadius: 2,
+    alignItems: "center",
+    justifyContent: "center",
+    margin: 0,
+    backgroundColor: "#ffcc99",
   },
   button: {
     alignItems: "center",

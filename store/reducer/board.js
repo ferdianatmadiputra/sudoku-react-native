@@ -1,6 +1,7 @@
 const initialState = {
   initBoard: [],
   currentBoard: [],
+  isValid: 'unsolved'
 }
 
 function reducer(state = initialState, action) {
@@ -10,6 +11,8 @@ function reducer(state = initialState, action) {
       return { ...state, initBoard: payload }
     case 'CURRENTBOARD/SET':
       return { ...state, currentBoard: payload}
+    case 'ISVALID/SET':
+      return { ...state, isValid: payload}
     default:
       return state
   }
