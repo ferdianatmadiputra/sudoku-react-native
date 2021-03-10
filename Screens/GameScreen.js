@@ -2,11 +2,10 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import { Button, StyleSheet, Text, TextInput, View, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchBoard, autoSolve, setCurrentBoard, validate } from '../store/actions'
+import { fetchBoard, autoSolve, setCurrentBoard, setIsValid, validate } from '../store/actions'
 import CountDown from 'react-native-countdown-component';
 import AsyncStorage from '@react-native-community/async-storage'
 import { Snackbar } from 'react-native-paper'
-
 
 export default function GameScreen(props) {
   const STORAGE_KEY = '@save_leaderboard_ferdian'
@@ -17,12 +16,16 @@ export default function GameScreen(props) {
   const isValid = useSelector(state => state.board.isValid)
   const [timeLeft, setTimeLeft] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  
+
+  // snackbar
+  // const [visible, setVisible] = useState(false);
+  // const onToggleSnackBar = () => setVisible(!visible);
+  // const onDismissSnackBar = () => setVisible(false);
 
   const dispatch = useDispatch()
 
   useEffect(() => {
-    dispatch(fetchBoard('easy'));
+    dispatch(fetchBoard(difficulty));
   }, []);
 
   useEffect(() => {
@@ -73,7 +76,7 @@ export default function GameScreen(props) {
     newBoard[i][j] = +val
     dispatch(setCurrentBoard(newBoard))
   }
-
+  
   if (initBoard.length < 1 || isLoading) {
     return (
       <View style={styles.loadercontainer}>
@@ -89,101 +92,105 @@ export default function GameScreen(props) {
 
   return (
     <View style={styles.container}>
-        <View style={styles.container}>
-        <View style={{ flexDirection: "row" }}>
-          <TouchableOpacity
-            style={styles.info}
-          >
-            <Text>LEVEL:</Text>
-            <Text style={styles.buttontext}>{difficulty}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.info}
-          >
-            <Text>time left</Text>
-            <CountDown
-              until={300}
-              onFinish={timeIsUp}
-              onChange={(time) => setTimeLeft(time)}
-              size={20}
-              digitStyle={{backgroundColor: '#ffcc99', borderWidth: 0}}
-              // digitTxtStyle={{color: '#1CC625'}}
-              // timeLabelStyle={{color: 'red', fontWeight: 'bold'}}
-              separatorStyle={{color: '#161616'}}
-              timeToShow={['M','S']}
-              timeLabels={{m: null, s: null}}
-              showSeparator
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.info}
-          >
-            <Text>player:</Text>
-            <Text style={styles.buttontext}>{username}</Text>
-          </TouchableOpacity>
-          </View>
-          <View style={styles.board}>
+      <View style={{ flexDirection: "row" }}>
+        <TouchableOpacity
+          style={styles.info}
+        >
+          <Text>LEVEL:</Text>
+          <Text style={styles.buttontext}>{difficulty}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.info}
+        >
+          <Text>time left</Text>
+          <CountDown
+            until={300}
+            onFinish={timeIsUp}
+            onChange={(time) => setTimeLeft(time)}
+            size={20}
+            digitStyle={{backgroundColor: '#ffcc99', borderWidth: 0}}
+            separatorStyle={{color: '#161616'}}
+            timeToShow={['M','S']}
+            timeLabels={{m: null, s: null}}
+            showSeparator
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.info}
+        >
+          <Text>player:</Text>
+          <Text style={styles.buttontext}>{username}</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.board}>
 
+      {
+        currentBoard.map((line, line_index) => (
+          <View key={line_index} style={{ flexDirection: "row" }}>
           {
-            currentBoard.map((line, line_index) => (
-              <View key={line_index} style={{ flexDirection: "row" }}>
-              {
-                line.map((cell, cell_index) => (
-                  <View key={cell_index}>
-                    { initBoard[line_index][cell_index] == 0
-                      ?
-                      <View style={styles.square}>
-                        <TextInput
-                          // style={styles.square}
-                          maxLength={1}
-                          keyboardType="numeric"
-                          defaultValue={cell === 0 ? '' : cell.toString()}
-                          onChangeText={(text) => newInputBoard(text, line_index, cell_index)}
-                          />
-                      </View>
-                      :
-                      <View style={styles.givensquare}>
-                        <Text>
-                          {cell}
-                        </Text>
-                      </View>
-                    }
+            line.map((cell, cell_index) => (
+              <View key={cell_index}>
+                { initBoard[line_index][cell_index] == 0
+                  ?
+                  <View 
+                  style={[
+                    ((line_index < 3 && cell_index < 3) ||
+                    (line_index > 5 && cell_index < 3) ||
+                    (line_index >= 3 && line_index <= 5 &&
+                      cell_index >= 3 && cell_index <= 5) ||
+                      (line_index < 3 && cell_index > 5) ||
+                      (line_index > 5 && cell_index > 5))
+                      ? {backgroundColor: "#FFEDC3"}
+                      : {backgroundColor: "white"}
+                      ,
+                      styles.square
+                  ]}>
+                    <TextInput style={{textAlign:"center", fontWeight: "bold"}}
+                      maxLength={1}
+                      keyboardType="numeric"
+                      defaultValue={cell === 0 ? '' : cell.toString()}
+                      onChangeText={(text) => newInputBoard(text, line_index, cell_index)}
+                      />
                   </View>
-                ))
-              }
-            </View>
+                  :
+                  <View style={[
+                    ((line_index < 3 && cell_index < 3) ||
+                    (line_index > 5 && cell_index < 3) ||
+                    (line_index >= 3 && line_index <= 5 &&
+                      cell_index >= 3 && cell_index <= 5) ||
+                      (line_index < 3 && cell_index > 5) ||
+                      (line_index > 5 && cell_index > 5))
+                      ? {backgroundColor: "#FFEDC3"}
+                      : {backgroundColor: "white"}
+                      ,
+                      styles.givensquare
+                  ]}>
+                    <Text style={{fontWeight: "bold", color: "grey"}}>
+                      {cell}
+                    </Text>
+                  </View>
+                }
+              </View>
             ))
           }
-          </View>
-          <View style={{ flexDirection: "row" }}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={onValidate}
-            >
-              <Text style={styles.buttontext}>Check!</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={onAutoSolve}
-            >
-              <Text style={styles.buttontext}>AutoSolve</Text>
-            </TouchableOpacity>
-          </View>
-
         </View>
-        {/* <View style={styles.snackbar}>
-        <Snackbar
-          visible={visible}
-          onDismiss={onDismissSnackBar}
-          action={{
-            label: 'Undo',
-            onPress: () => {
-              // Do something
-            },
-          }}>
-          {popupMessage}
-        </Snackbar>
-      </View> */}
+        ))
+      }
+      </View>
+      <View style={{ flexDirection: "row" }}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={onValidate}
+        >
+          <Text style={styles.buttontext}>Check!</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={onAutoSolve}
+        >
+          <Text style={styles.buttontext}>AutoSolve</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -200,13 +207,15 @@ const styles = StyleSheet.create({
     paddingTop: 30,
     alignItems: 'center',
     backgroundColor: "#FFEDC3",
-
-    // justifyContent: 'center',
   },
   board: {
     borderRadius: 6,
     borderWidth: 1,
     borderColor: "#20232a",
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 2,
   },
   square: {
     width: 40,
@@ -218,7 +227,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     fontWeight: "bold",
     margin: 0,
-    backgroundColor: "#ffff",
   },
   givensquare: {
     width: 40,
@@ -230,7 +238,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     fontWeight: "bold",
     margin: 0,
-    backgroundColor: "#FFEDC3",
+    // backgroundColor: "#FFEDC3",
   },
   button: {
     alignItems: "center",
@@ -246,7 +254,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.5,
     shadowRadius: 2,
-    elevation: 2,
   },
   buttontext: {
     fontSize: 18,

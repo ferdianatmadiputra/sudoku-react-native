@@ -77,7 +77,6 @@ export function validate(payload) {
             dispatch(setIsValid(data.status))
           }
           console.log(data, '<<< status dari validate')
-          // dispatch(setStatus(data.status))
         }
     } catch(err) {
       console.log(payload, 'ni payloadnya')

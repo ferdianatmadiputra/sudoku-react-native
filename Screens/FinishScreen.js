@@ -23,7 +23,6 @@ export default function FinishScreen({ navigation, route }) {
     try {
       const leaderboardData = JSON.parse(await AsyncStorage.getItem(STORAGE_KEY))
       if (leaderboardData !== null) {
-          // pr besok ngesort datanya!!!!
         await leaderboardData.sort((a, b) => b.score - a.score)
         setLeaderboard(leaderboardData)
         console.log(leaderboardData, 'ini dari storage')
@@ -56,7 +55,6 @@ export default function FinishScreen({ navigation, route }) {
     <View style={styles.container}>
       <ScrollView>
       <Text style={styles.title}>CONGRATS {username.toUpperCase()}! YOUR SCORE: {score}!</Text>
-      {/* <Text style={styles.title}>YOUR SCORE: {score}</Text> */}
       <Text style={{...styles.buttontext, margin: 20}}>LEADERBOARD:</Text>
       {
         leaderboard.map((item, index) => (
