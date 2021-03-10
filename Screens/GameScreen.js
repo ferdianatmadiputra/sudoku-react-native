@@ -9,13 +9,15 @@ import { Snackbar } from 'react-native-paper'
 
 
 export default function GameScreen(props) {
-  const STORAGE_KEY = '@save_leaderboard'
+  const STORAGE_KEY = '@save_leaderboard_ferdian'
   const difficulty = props.route.params.difficulty
   const username = props.route.params.username
   const initBoard = useSelector(state => state.board.initBoard)
   const currentBoard = useSelector(state => state.board.currentBoard)
   const isValid = useSelector(state => state.board.isValid)
   const [timeLeft, setTimeLeft] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  
 
   const dispatch = useDispatch()
 
@@ -25,10 +27,20 @@ export default function GameScreen(props) {
 
   useEffect(() => {
     if (isValid === 'solved') {
-      saveData()
-      props.navigation.push('finish', {difficulty, username, score: timeLeft})
+      finished()
     }
   }, [isValid]);
+
+  const finished = async () => {
+    try {
+      setIsLoading(true)
+      await saveData()
+      props.navigation.push('finish', {difficulty, username, score: timeLeft})
+      setIsLoading(false)
+    } catch (e) {
+      console.log(e)
+    }
+  }
 
   const saveData = async () => {
     try {
@@ -62,7 +74,7 @@ export default function GameScreen(props) {
     dispatch(setCurrentBoard(newBoard))
   }
 
-  if (initBoard.length < 1) {
+  if (initBoard.length < 1 || isLoading) {
     return (
       <View style={styles.loadercontainer}>
         <ActivityIndicator size="large" color="#20232a" />
@@ -123,6 +135,7 @@ export default function GameScreen(props) {
                       <View style={styles.square}>
                         <TextInput
                           // style={styles.square}
+                          maxLength={1}
                           keyboardType="numeric"
                           defaultValue={cell === 0 ? '' : cell.toString()}
                           onChangeText={(text) => newInputBoard(text, line_index, cell_index)}

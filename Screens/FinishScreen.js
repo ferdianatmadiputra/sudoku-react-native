@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-community/async-storage'
 
 
 export default function FinishScreen({ navigation, route }) {
-  const STORAGE_KEY = '@save_leaderboard'
+  const STORAGE_KEY = '@save_leaderboard_ferdian'
   const username = route.params.username
   const difficulty = route.params.difficulty
   const [leaderboard, setLeaderboard] = useState([])
@@ -24,6 +24,7 @@ export default function FinishScreen({ navigation, route }) {
       const leaderboardData = JSON.parse(await AsyncStorage.getItem(STORAGE_KEY))
       if (leaderboardData !== null) {
           // pr besok ngesort datanya!!!!
+        await leaderboardData.sort((a, b) => b.score - a.score)
         setLeaderboard(leaderboardData)
         console.log(leaderboardData, 'ini dari storage')
       }
@@ -32,13 +33,16 @@ export default function FinishScreen({ navigation, route }) {
     }
   }
 
+  useEffect (() => {
+    console.log(leaderboard)
+  }, [leaderboard])
+
   useEffect(() => {
     readData()
     dispatch(setIsValid('unsolved'))
     dispatch(setCurrentBoard([]))
     dispatch(setInitBoard([]))
   }, []);
-
 
   if (leaderboard.length == 0) {
     return (
@@ -51,9 +55,9 @@ export default function FinishScreen({ navigation, route }) {
   return (
     <View style={styles.container}>
       <ScrollView>
-      <Text style={styles.title}>CONGRATS {username.toUpperCase()}! YOU HAVE FINISHED YOUR SUDOKU!</Text>
-      <Text>YOUR SCORE: {score}</Text>
-      <Text>LEADERBOARD:</Text>
+      <Text style={styles.title}>CONGRATS {username.toUpperCase()}! YOUR SCORE: {score}!</Text>
+      {/* <Text style={styles.title}>YOUR SCORE: {score}</Text> */}
+      <Text style={{...styles.buttontext, margin: 20}}>LEADERBOARD:</Text>
       {
         leaderboard.map((item, index) => (
           // <Card key={item.id}>
@@ -189,9 +193,8 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     color: "#20232a",
     backgroundColor: "#ffcc99",
-
     marginHorizontal: 10,
-    height: 100,
+    height: 80,
     // width: 200,
     padding: 10,
     flex: 1

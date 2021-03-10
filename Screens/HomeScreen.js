@@ -8,7 +8,6 @@ import { Snackbar } from 'react-native-paper'
 // import LottieView from 'lottie-react-native';
 
 export default function HomeScreen({ navigation }) {
-  
   const [difficulty, setDifficulty] = useState('random')
   const [username, setUsername] = useState('')
   const [visible, setVisible] = useState(false);
@@ -42,8 +41,6 @@ export default function HomeScreen({ navigation }) {
       <TextInput
         style={styles.square}
         autoFocus={true}
-        // keyboardType="numeric"
-        // defaultValue={cell.toString()}
         onChangeText={(text) => setUsername(text)}
       />
       <Text>Difficulty:</Text>
@@ -72,7 +69,7 @@ export default function HomeScreen({ navigation }) {
           action={{
             label: 'OK',
             onPress: () => {
-              // Do something
+              console.log('snackbar pressed ok')
             },
           }}>
           {popupMessage}
