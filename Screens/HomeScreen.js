@@ -1,18 +1,27 @@
-import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import { Button, StyleSheet, Text, TextInput, View, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Picker } from '@react-native-community/picker'
 import { DefaultTheme, Provider as PaperProvider } from 'react-native-paper'
 import { useSelector } from 'react-redux';
+import { Snackbar } from 'react-native-paper'
+
 // import LottieView from 'lottie-react-native';
 
 export default function HomeScreen({ navigation }) {
   
   const [difficulty, setDifficulty] = useState('random')
   const [username, setUsername] = useState('')
-  
+  const [visible, setVisible] = useState(false);
+  const onToggleSnackBar = () => setVisible(!visible);
+  const onDismissSnackBar = () => setVisible(false);
+  const popupMessage = 'please fill all required fields!'
+
   function goToGame () {
-    navigation.push('game', { difficulty: difficulty, username: username })
+    if (username.length > 0 && difficulty.length > 0) {
+      navigation.push('game', { difficulty: difficulty, username: username })
+    } else {
+      setVisible(true)
+    }
   }
   if (false) {
     return <Text>Loading...</Text>
@@ -56,6 +65,19 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.buttontext}>Start The Game!</Text>
         </TouchableOpacity>
       </View>
+      <View style={styles.snackbar}>
+        <Snackbar
+          visible={visible}
+          onDismiss={onDismissSnackBar}
+          action={{
+            label: 'OK',
+            onPress: () => {
+              // Do something
+            },
+          }}>
+          {popupMessage}
+        </Snackbar>
+      </View>
     </View>
   );
 }
@@ -70,6 +92,7 @@ const styles = StyleSheet.create({
     textDecorationColor: '#ffffff'
   },
   square: {
+    padding: 10,
     height: 50,
     width: 300,
     // borderColor: "#20232a",
@@ -112,5 +135,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 30,
     fontWeight: "bold"
+  },
+  snackbar: {
+    flex: 1,
+    alignItems: "center",
+    // justifyContent: "flex-end"
   }
 });

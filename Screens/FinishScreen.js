@@ -1,34 +1,92 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
-import { Button, StyleSheet, Text, TextInput, View, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Picker } from '@react-native-community/picker'
-import { DefaultTheme, Provider as PaperProvider } from 'react-native-paper'
+import { Button, StyleSheet, Text, ScrollView, View, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { List, Avatar, Card} from 'react-native-paper';
 import { useDispatch } from 'react-redux';
-import { setIsValid, setCurrentBoard, setInitBoard } from '../store/actions';
+import { setIsValid, setCurrentBoard, setInitBoard, autoSolve } from '../store/actions';
+import AsyncStorage from '@react-native-community/async-storage'
 
 
 export default function FinishScreen({ navigation, route }) {
+  const STORAGE_KEY = '@save_leaderboard'
+  const username = route.params.username
+  const difficulty = route.params.difficulty
+  const [leaderboard, setLeaderboard] = useState([])
+  const score = route.params.score
+  const dispatch = useDispatch()
 
-const username = route.params.username
-const difficulty = route.params.difficulty
-const score = route.params.score
-const dispatch = useDispatch()
   function goToHome () {
-    dispatch(setIsValid('unsolved'))
-    dispatch(setCurrentBoard([]))
-    dispatch(setInitBoard([]))
     navigation.push(('home'))
   }
 
-  if (false) {
-    return <Text>Loading...</Text>
+  const readData = async () => {
+    try {
+      const leaderboardData = JSON.parse(await AsyncStorage.getItem(STORAGE_KEY))
+      if (leaderboardData !== null) {
+          // pr besok ngesort datanya!!!!
+        setLeaderboard(leaderboardData)
+        console.log(leaderboardData, 'ini dari storage')
+      }
+    } catch (e) {
+      alert('Failed to fetch the data from storage')
+    }
+  }
+
+  useEffect(() => {
+    readData()
+    dispatch(setIsValid('unsolved'))
+    dispatch(setCurrentBoard([]))
+    dispatch(setInitBoard([]))
+  }, []);
+
+
+  if (leaderboard.length == 0) {
+    return (
+      <View style={styles.loadercontainer}>
+        <ActivityIndicator size="large" color="#20232a" />
+      </View>
+      )
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>CONGRATS! {username.toUpperCase()} YOU HAVE FINISHED YOUR SUDOKU!</Text>
+      <ScrollView>
+      <Text style={styles.title}>CONGRATS {username.toUpperCase()}! YOU HAVE FINISHED YOUR SUDOKU!</Text>
       <Text>YOUR SCORE: {score}</Text>
       <Text>LEADERBOARD:</Text>
+      {
+        leaderboard.map((item, index) => (
+          // <Card key={item.id}>
+          //   <Card.Title
+          //   title={item.username}
+          //   subtitle={item.score}
+          //   left={props => <Avatar.Text size={24} label={index + 1} />}
+          //   />
+          // </Card>
+
+          <View key={item.id}
+          style={styles.leaderboard}>
+            <Avatar.Text style={styles.info} size={60} label={index + 1} />
+            <TouchableOpacity
+              style={styles.info}
+            >
+              <Text style={styles.buttontext}>{item.username}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.info}
+            >
+              <Text style={styles.buttontext}>{item.score}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.info}
+            >
+              <Text style={styles.buttontext}>{item.difficulty}</Text>
+            </TouchableOpacity>
+          </View>
+        ))
+      }
+
+
       <View style={{ flexDirection: "row" }}>
         <TouchableOpacity
           style={styles.button}
@@ -37,6 +95,7 @@ const dispatch = useDispatch()
           <Text style={styles.buttontext}>Play again!</Text>
         </TouchableOpacity>
       </View>
+      </ScrollView>
     </View>
   );
 }
@@ -51,7 +110,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingTop: 20,
+    paddingTop: 50,
     alignItems: 'center',
     backgroundColor: "#FFEDC3",
     justifyContent: 'center',
@@ -98,6 +157,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold"
   },
+  info: {
+    alignItems: "center",
+    flex: 1,
+    backgroundColor: "#ffcc99",
+    padding: 6,
+    // marginHorizontal: 5,
+    borderRadius: 5,
+    // marginVertical: 10,
+  },
   title: {
     marginTop: 16,
     paddingVertical: 8,
@@ -110,5 +178,22 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 30,
     fontWeight: "bold"
+  },
+  scrollView: {
+  },
+  leaderboard: { 
+    flexDirection: "row",
+    borderColor: "grey",
+    borderWidth: 0.5,
+    borderRadius: 2,
+    marginBottom: 5,
+    color: "#20232a",
+    backgroundColor: "#ffcc99",
+
+    marginHorizontal: 10,
+    height: 100,
+    // width: 200,
+    padding: 10,
+    flex: 1
   }
 });

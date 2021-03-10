@@ -4,18 +4,18 @@ import { Button, StyleSheet, Text, TextInput, View, TouchableOpacity, ActivityIn
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchBoard, autoSolve, setCurrentBoard, validate } from '../store/actions'
 import CountDown from 'react-native-countdown-component';
-// import store from './store'
-// import theme from './CustomProperties/Theme'
-// import { Table, Row, Rows } from 'react-native-table-component'
-
+import AsyncStorage from '@react-native-community/async-storage'
+import { Snackbar } from 'react-native-paper'
 
 
 export default function GameScreen(props) {
+  const STORAGE_KEY = '@save_leaderboard'
   const difficulty = props.route.params.difficulty
   const username = props.route.params.username
   const initBoard = useSelector(state => state.board.initBoard)
   const currentBoard = useSelector(state => state.board.currentBoard)
   const isValid = useSelector(state => state.board.isValid)
+  const [timeLeft, setTimeLeft] = useState('')
 
   const dispatch = useDispatch()
 
@@ -25,9 +25,28 @@ export default function GameScreen(props) {
 
   useEffect(() => {
     if (isValid === 'solved') {
-      props.navigation.push('finish', {difficulty, username, score: 100})
+      saveData()
+      props.navigation.push('finish', {difficulty, username, score: timeLeft})
     }
   }, [isValid]);
+
+  const saveData = async () => {
+    try {
+      const id = new Date().valueOf()
+      let newLeaderboard = await AsyncStorage.getItem(STORAGE_KEY)
+      if(newLeaderboard) {
+        newLeaderboard = JSON.parse(newLeaderboard)
+        newLeaderboard.push({id, username, difficulty, score: timeLeft})
+      } else {
+        newLeaderboard = [{id, username, difficulty, score: timeLeft}]
+      }
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newLeaderboard))
+      console.log('Data successfully saved')
+    } catch (e) {
+      console.log(e)
+      console.log('Failed to save the data to the storage')
+    }
+  }
 
   function onValidate() {
     dispatch(validate(currentBoard))
@@ -51,6 +70,11 @@ export default function GameScreen(props) {
       )
   }
 
+  function timeIsUp () {
+    alert("Time's Out! you failed!")
+    props.navigation.push('home')
+  }
+
   return (
     <View style={styles.container}>
         <View style={styles.container}>
@@ -66,16 +90,17 @@ export default function GameScreen(props) {
           >
             <Text>time left</Text>
             <CountDown
-              until={100}
-              onFinish={() => alert('finished')}
-              onPress={() => alert('hello')}
+              until={300}
+              onFinish={timeIsUp}
+              onChange={(time) => setTimeLeft(time)}
               size={20}
               digitStyle={{backgroundColor: '#ffcc99', borderWidth: 0}}
               // digitTxtStyle={{color: '#1CC625'}}
               // timeLabelStyle={{color: 'red', fontWeight: 'bold'}}
-              // separatorStyle={{color: '#1CC625'}}
-              timeToShow={['S']}
+              separatorStyle={{color: '#161616'}}
+              timeToShow={['M','S']}
               timeLabels={{m: null, s: null}}
+              showSeparator
             />
           </TouchableOpacity>
           <TouchableOpacity
@@ -103,8 +128,7 @@ export default function GameScreen(props) {
                           onChangeText={(text) => newInputBoard(text, line_index, cell_index)}
                           />
                       </View>
-
-:
+                      :
                       <View style={styles.givensquare}>
                         <Text>
                           {cell}
@@ -134,6 +158,19 @@ export default function GameScreen(props) {
           </View>
 
         </View>
+        {/* <View style={styles.snackbar}>
+        <Snackbar
+          visible={visible}
+          onDismiss={onDismissSnackBar}
+          action={{
+            label: 'Undo',
+            onPress: () => {
+              // Do something
+            },
+          }}>
+          {popupMessage}
+        </Snackbar>
+      </View> */}
     </View>
   );
 }
@@ -147,15 +184,15 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingTop: 20,
+    paddingTop: 30,
     alignItems: 'center',
     backgroundColor: "#FFEDC3",
 
     // justifyContent: 'center',
   },
   board: {
-    borderRadius: 10,
-    borderWidth: 3,
+    borderRadius: 6,
+    borderWidth: 1,
     borderColor: "#20232a",
   },
   square: {
@@ -208,6 +245,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffcc99",
     padding: 6,
     marginHorizontal: 5,
+    borderRadius: 5,
     marginVertical: 10,
   },
   title: {
@@ -222,5 +260,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 30,
     fontWeight: "bold"
+  },
+  snackbar: {
+    flex: 1,
+    alignItems: "center",
+    // justifyContent: "flex-end"
   }
 });
